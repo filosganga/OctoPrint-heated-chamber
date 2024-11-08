@@ -1,14 +1,5 @@
 <form class="form-horizontal">
 	<div class="control-group">
-		<legend>General options</legend>
-		<label class="control-label">Frequency (0.5 - 25)</label>
-		<div class="controls">
-    	<span class="input-append">
-			  <input type="number" step="0.1" min="0.5" max="25" class="input-mini text-right" data-bind="value: settings.plugins.heated_chamber.frequency">
-				<span class="add-on">s</span>
-			</span>
-		</div>
-		<br>
     <label class="control-label">Temperature threshold (0 - 10)</label>
 		<div class="controls">
       <span class="input-append">
@@ -25,15 +16,15 @@
     <label class="control-label">Components</label>
 		<div class="controls">
       <span class="input-append">
-        <input type="number" step="0.1" max="0" class="input-mini text-right" data-bind="value: settings.plugins.heated_chamber.pid.kp">
+        <input type="number" step="0.01" max="0" class="input-mini text-right" data-bind="value: settings.plugins.heated_chamber.pid.kp">
         <span class="add-on">kp</span>
       </span>
       <span class="input-append">
-        <input type="number" step="0.1" max="0" class="input-mini text-right" data-bind="value: settings.plugins.heated_chamber.pid.kd">
+        <input type="number" step="0.01" max="0" class="input-mini text-right" data-bind="value: settings.plugins.heated_chamber.pid.kd">
         <span class="add-on">kd</span>
       </span>
       <span class="input-append">
-        <input type="number" step="0.1" max="0" class="input-mini text-right" data-bind="value: settings.plugins.heated_chamber.pid.ki">
+        <input type="number" step="0.01" max="0" class="input-mini text-right" data-bind="value: settings.plugins.heated_chamber.pid.ki">
         <span class="add-on">ki</span>
       </span>
     </div>
