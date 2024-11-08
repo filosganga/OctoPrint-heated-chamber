@@ -28,7 +28,7 @@ class Ds18b20(TemperatureSensor):
             self._update_frequency, self._loop, condition=self.is_running, daemon=True
         )
 
-        self._logger.info(
+        self._logger.debug(
             f"Ds18b20 initiated with update_frequency={self._update_frequency}, device_id={self._device_id}"
         )
 

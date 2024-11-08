@@ -45,16 +45,21 @@ class PwmFan(Fan):
     def destroy(self):
         self._pi.stop()
 
-    def get_max_power(self) -> int:
+    def get_max_power(self) -> float:
         return 100
 
-    def get_idle_power(self) -> int:
+    def get_idle_power(self) -> float:
         return self._idle_power
 
-    def idle(self):
+    def idle(self) -> None:
         self.set_power(self._idle_power)
 
-    def set_power(self, power):
+    def get_power(self) -> float:
+        return self._power
+
+    def set_power(self, power) -> None:
+        self._logger.debug(f"Setting power to {power}")
+
         assert power >= 0
         assert power <= 100
 
@@ -64,8 +69,5 @@ class PwmFan(Fan):
             self._pin, self._frequency, self._pwm_duty_cycle(self._power)
         )
 
-    def _pwm_duty_cycle(self, power):
+    def _pwm_duty_cycle(self, power) -> int:
         return int(power / 100 * 1000000)
-
-    def get_power(self):
-        return self._power
