@@ -36,6 +36,7 @@ class RelayHeater(Heater):
         super().__init__(logger)
         self._pin = pin
         self._relay_mode = relay_mode
+        self._on = False
 
         if relay_mode == RelayMode.ACTIVE_HIGH:
             self._on_value = 1

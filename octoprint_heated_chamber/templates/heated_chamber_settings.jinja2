@@ -3,7 +3,7 @@
     <label class="control-label">Temperature threshold (0 - 10)</label>
 		<div class="controls">
       <span class="input-append">
-			  <input type="number" step="0.1" min="0" max="10" class="input-mini text-right" data-bind="value: settings.plugins.heated_chamber.temperature_threshold">
+			  <input type="number" step="0.1" min="0" max="10" class="input-mini text-right" data-bind="value: settings.temperature_threshold">
         <span class="add-on">&#8451;</span>
       </span>
     </div>
@@ -16,15 +16,15 @@
     <label class="control-label">Components</label>
 		<div class="controls">
       <span class="input-append">
-        <input type="number" step="0.01" max="0" class="input-mini text-right" data-bind="value: settings.plugins.heated_chamber.pid.kp">
+        <input type="number" step="0.01" max="0" class="input-mini text-right" data-bind="value: settings.pid.kp">
         <span class="add-on">kp</span>
       </span>
       <span class="input-append">
-        <input type="number" step="0.01" max="0" class="input-mini text-right" data-bind="value: settings.plugins.heated_chamber.pid.kd">
+        <input type="number" step="0.01" max="0" class="input-mini text-right" data-bind="value: settings.pid.kd">
         <span class="add-on">kd</span>
       </span>
       <span class="input-append">
-        <input type="number" step="0.01" max="0" class="input-mini text-right" data-bind="value: settings.plugins.heated_chamber.pid.ki">
+        <input type="number" step="0.01" max="0" class="input-mini text-right" data-bind="value: settings.pid.ki">
         <span class="add-on">ki</span>
       </span>
     </div>
@@ -32,7 +32,7 @@
     <label class="control-label">Sample time</label>
 		<div class="controls">
       <span class="input-append">
-			  <input type="number" step="0.1" max="0" class="input-mini text-right" data-bind="value: settings.plugins.heated_chamber.pid.sample_time">
+			  <input type="number" step="0.1" max="0" class="input-mini text-right" data-bind="value: settings.pid.sample_time">
 				<span class="add-on">s</span>
 			</span>
     </div>
@@ -43,15 +43,18 @@
 		<label class="control-label">Frequency (0.5 - 5)s</label>
 		<div class="controls">
       <span class="input-append">
-			  <input type="number" step="0.1" min="0.5" max="5" class="input-mini text-right" data-bind="value: settings.plugins.heated_chamber.temperature_sensor.ds18b20.frequency">
+			  <input type="number" step="0.1" min="0.5" max="5" class="input-mini text-right" data-bind="value: settings.temperature_sensor.ds18b20.frequency">
 				<span class="add-on">s</span>
 			</span>
     </div>
 		<br>
-    <label class="control-label">Device ID (28-*)</label>
+    <label class="control-label">Device ID</label>
     <div class="controls">
-      <input class="input" data-bind="value: settings.plugins.heated_chamber.temperature_sensor.ds18b20.device_id">
-      <span class="help-inline">The device id, can be found via ls -la /sys/bus/w1/devices/28-*</span>
+      <select class="input-xlarge" data-bind="value: settings.temperature_sensor.ds18b20.device_id, options: ds18b20Devices, optionsCaption: '-- Select a device --'"></select>
+      <button class="btn btn-small" data-bind="click: refreshDs18b20Devices, disable: isLoadingDevices" title="Refresh device list">
+        <i data-bind="css: { 'icon-refresh': !isLoadingDevices(), 'icon-spinner icon-spin': isLoadingDevices() }"></i>
+      </button>
+      <span class="help-inline" data-bind="visible: ds18b20Devices().length === 0 && !isLoadingDevices()">No devices found. Check 1-wire setup.</span>
     </div>
   </div>
 
@@ -59,14 +62,14 @@
     <legend>PWM fan</legend>
 		<label class="control-label">PWM Pin</label>
 		<div class="controls">
-			<input type="number" class="input-mini text-right" data-bind="value: settings.plugins.heated_chamber.fan.pwm.pin">
+			<input type="number" class="input-mini text-right" data-bind="value: settings.fan.pwm.pin">
 		</div>
 		<br>
 
 		<label class="control-label">PWM Frequency (Hz)</label>
 		<div class="controls">
       <span class="input-append">
-			  <input type="number" class="input-mini text-right" data-bind="value: settings.plugins.heated_chamber.fan.pwm.frequency">
+			  <input type="number" class="input-mini text-right" data-bind="value: settings.fan.pwm.frequency">
       	<span class="add-on">Hz</span>
 			</span>
 		</div>
@@ -74,7 +77,7 @@
 
 		<label class="control-label">Idle power (0-100)</label>
 		<div class="controls">
-			<input type="number" step="1" min="0" max="100" class="input-mini text-right" data-bind="value: settings.plugins.heated_chamber.fan.pwm.idle_power">
+			<input type="number" step="1" min="0" max="100" class="input-mini text-right" data-bind="value: settings.fan.pwm.idle_power">
 		</div>
 		<br>
   </div>
@@ -84,13 +87,13 @@
 
     <label class="control-label">Pin</label>
 		<div class="controls">
-			<input type="number" class="input-mini text-right" data-bind="value: settings.plugins.heated_chamber.heater.relay.pin">
+			<input type="number" class="input-mini text-right" data-bind="value: settings.heater.relay.pin">
 		</div>
 		<br>
 
     <label class="control-label">Relay mode</label>
 		<div class="controls">
-      <select data-bind="value: settings.plugins.heated_chamber.heater.relay.relay_mode" class="input-medium" title="Relay mode">
+      <select data-bind="value: settings.heater.relay.relay_mode" class="input-medium" title="Relay mode">
         <option value="0">Active low</option>
         <option value="1">Active high</option>
       </select>

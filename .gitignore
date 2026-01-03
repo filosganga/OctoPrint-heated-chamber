@@ -1,9 +1,34 @@
-*.pyc
-*.swp
-.idea
+# Byte-compiled / optimized
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Distribution / packaging
+build/
+dist/
+*.egg-info/
+*.egg
+
+# Environments
+.env
+.venv/
+venv/
+
+# IDE
+.idea/
+.vscode/
 *.iml
-build
-dist
-*.egg*
+*.swp
+*.swo
+*~
+
+# Nix
+result
+result-*
+
+# OS
 .DS_Store
+Thumbs.db
+
+# Archives
 *.zip

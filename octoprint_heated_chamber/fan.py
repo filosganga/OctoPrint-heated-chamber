@@ -36,14 +36,18 @@ class PwmFan(Fan):
         self._pin = pwm_pin
         self._pi = pigpio.pi()
         self._idle_power = idle_power
+        self._power = idle_power
+        self._connected = self._pi.connected
 
-        if not self._pi.connected:
-            self._logger.error("Error connectiong to pigpio")
+        if not self._connected:
+            self._logger.error("Error connecting to pigpio daemon. Fan control disabled.")
+            return
 
         self.set_power(self._idle_power)
 
     def destroy(self):
-        self._pi.stop()
+        if self._connected:
+            self._pi.stop()
 
     def get_max_power(self) -> float:
         return 100
@@ -65,9 +69,10 @@ class PwmFan(Fan):
 
         self._power = power
         self._logger.debug(f"Set power to {self._power}")
-        self._pi.hardware_PWM(
-            self._pin, self._frequency, self._pwm_duty_cycle(self._power)
-        )
+        if self._connected:
+            self._pi.hardware_PWM(
+                self._pin, self._frequency, self._pwm_duty_cycle(self._power)
+            )
 
     def _pwm_duty_cycle(self, power) -> int:
         return int(power / 100 * 1000000)

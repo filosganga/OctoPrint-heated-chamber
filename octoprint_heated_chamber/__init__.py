@@ -58,10 +58,14 @@ class HeatedChamberPlugin(
         temperature_sensor_ds18b20_device_id = self._settings.get(
             ["temperature_sensor", "ds18b20", "device_id"], merged=True
         )
+        temperature_sensor_ds18b20_max_retries = self._settings.get_int(
+            ["temperature_sensor", "ds18b20", "max_retries"], merged=True
+        )
         self._temperature_sensor = Ds18b20(
             self._logger,
             temperature_sensor_ds18b20_frequency,
             temperature_sensor_ds18b20_device_id,
+            temperature_sensor_ds18b20_max_retries,
         )
         self._temperature_sensor.start()
 
@@ -87,8 +91,8 @@ class HeatedChamberPlugin(
 
         if self._pid is not None:
             self._pid.Kp = pid_kp
-            self._pid.Ki = pid_kd
-            self._pid.Kd = pid_ki
+            self._pid.Ki = pid_ki
+            self._pid.Kd = pid_kd
             self._pid.sample_time = pid_sample_time
             self._pid.output_limits = (
                 self._fan.get_idle_power(),
@@ -97,8 +101,8 @@ class HeatedChamberPlugin(
         else:
             self._pid = PID(
                 pid_kp,
-                pid_kd,
                 pid_ki,
+                pid_kd,
                 sample_time=pid_sample_time,
                 output_limits=(
                     self._fan.get_idle_power(),
@@ -160,7 +164,7 @@ class HeatedChamberPlugin(
             pid=dict(kp=-5, kd=-0.05, ki=-0.02, sample_time=5),
             fan=dict(pwm=dict(pin=18, frequency=25000, idle_power=15)),
             temperature_sensor=dict(
-                ds18b20=dict(frequency=1.0, device_id="28-0000057065d7")
+                ds18b20=dict(frequency=1.0, device_id=None, max_retries=10)
             ),
             heater=dict(relay=dict(pin=23, relay_mode=0)),
         )
@@ -206,7 +210,7 @@ class HeatedChamberPlugin(
     ##~~ TemplatePlugin mixin
 
     def get_template_configs(self):
-        return [dict(type="settings", custom_bindings=False)]
+        return [dict(type="settings", custom_bindings=True)]
 
     ##~~ softwareupdate.check_config hook
 
@@ -221,7 +225,7 @@ class HeatedChamberPlugin(
                 # version check: github repository
                 "type": "github_release",
                 "user": "filosganga",
-                "repo": "OctoPrint-heated-c hamber",
+                "repo": "OctoPrint-heated-chamber",
                 "current": self._plugin_version,
                 # update method: pip
                 "pip": "https://github.com/filosganga/OctoPrint-heated-chamber/archive/{target_version}.zip",
