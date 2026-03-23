@@ -216,7 +216,16 @@ class HeatedChamberPlugin(
 
             # deceide if you want the reset function in you settings dialog
             if "listDs18b20Devices" == action:
-                return flask.jsonify(list_ds18b20_devices())
+                try:
+                    devices = list_ds18b20_devices()
+                except Exception as e:
+                    self._logger.error(f"Failed to list DS18B20 devices: {e}")
+                    devices = []
+                if not devices:
+                    self._logger.warning("No DS18B20 devices found. Check 1-wire setup.")
+                else:
+                    self._logger.debug(f"Found DS18B20 devices: {devices}")
+                return flask.jsonify({"devices": devices})
 
     ##~~ TemplatePlugin mixin
 

@@ -25,7 +25,8 @@ $(function() {
             self.isLoadingDevices(true);
             OctoPrint.simpleApiGet("heated_chamber", { action: "listDs18b20Devices" })
                 .done(function(response) {
-                    self.ds18b20Devices(response);
+                    var devices = response && response.devices ? response.devices : [];
+                    self.ds18b20Devices(devices);
                 })
                 .fail(function() {
                     self.ds18b20Devices([]);
