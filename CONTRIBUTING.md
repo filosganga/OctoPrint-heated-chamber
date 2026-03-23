@@ -6,7 +6,7 @@ Thank you for your interest in contributing to this plugin!
 
 ### Prerequisites
 
-- [Nix](https://nixos.org/download.html) with flakes enabled
+- [pyenv](https://github.com/pyenv/pyenv) for managing Python versions
 - For hardware testing: Raspberry Pi with OctoPrint installed
 
 ### Local Development Environment
@@ -18,13 +18,29 @@ Thank you for your interest in contributing to this plugin!
    cd OctoPrint-heated-chamber
    ```
 
-2. Enter the Nix development shell:
+2. Install and activate the correct Python version:
 
    ```bash
-   nix develop
+   pyenv install 3.12.9
+   pyenv local 3.12.9
    ```
 
-   This provides Python with all dependencies, plus development tools (black, ruff, mypy).
+3. Create a virtual environment and install dev dependencies:
+
+   ```bash
+   python -m venv .venv
+   source .venv/bin/activate
+   pip install -r requirements-dev.txt
+   ```
+
+4. Install the plugin in editable mode:
+
+   ```bash
+   pip install -e . --no-deps
+   pip install simple-pid
+   ```
+
+   The `--no-deps` flag is needed because `pigpio` and `RPi.GPIO` are Raspberry Pi-only and cannot be installed on macOS. Your IDE will show unresolved imports for these two packages — this is expected.
 
 ### Testing on Raspberry Pi
 

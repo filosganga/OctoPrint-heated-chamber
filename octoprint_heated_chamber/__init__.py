@@ -388,7 +388,9 @@ class HeatedChamberPlugin(
 
     def on_event(self, event, payload):
         if event in ("PrintDone", "PrintFailed", "PrintCancelled"):
-            self._logger.info(f"Print ended ({event}), turning off heater and starting purge")
+            self._logger.info(
+                f"Print ended ({event}), turning off heater and starting purge"
+            )
             self._waiting_for_temperature = False
             self.set_target_temperature(None)
             if self._heater is not None:
