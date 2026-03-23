@@ -4,6 +4,7 @@ from octoprint.util import RepeatedTimer
 import octoprint.plugin
 from simple_pid import PID
 
+import threading
 import flask
 from flask_login import current_user
 
@@ -19,6 +20,7 @@ class HeatedChamberPlugin(
     octoprint.plugin.AssetPlugin,
     octoprint.plugin.SimpleApiPlugin,
     octoprint.plugin.TemplatePlugin,
+    octoprint.plugin.EventHandlerPlugin,
 ):
     def __init__(self):
         self._fan = None
@@ -29,6 +31,10 @@ class HeatedChamberPlugin(
         self._temperature_threshold = None
         self._target_temperature = None
         self._timer = None
+
+        self._waiting_for_temperature = False
+        self._purging = False
+        self._purge_timer = None
 
     def initialize(self):
         # Fan
@@ -140,6 +146,10 @@ class HeatedChamberPlugin(
             self._timer.cancel()
             self._timer = None
 
+        if self._purge_timer is not None:
+            self._purge_timer.cancel()
+            self._purge_timer = None
+
         if self._temperature_sensor is not None:
             self._temperature_sensor.stop()
             self._temperature_sensor = None
@@ -161,6 +171,7 @@ class HeatedChamberPlugin(
         return dict(
             frequency=1.0,
             temperature_threshold=2.5,
+            purge_duration=300,
             pid=dict(kp=-5, kd=-0.05, ki=-0.02, sample_time=5),
             fan=dict(pwm=dict(pin=18, frequency=25000, idle_power=15)),
             temperature_sensor=dict(
@@ -276,6 +287,15 @@ class HeatedChamberPlugin(
             self._logger.debug(f"Detected target_temperature={target_temperature}")
             self.set_target_temperature(target_temperature)
 
+            # M191 blocks until target temperature is reached
+            if gcode == "M191" and target_temperature is not None:
+                self._waiting_for_temperature = True
+                self._logger.info(
+                    f"M191: pausing print until chamber reaches {target_temperature}°C"
+                )
+                if self._printer is not None:
+                    self._printer.pause_print()
+
             return None
 
     ##~~ Plugin logic
@@ -284,6 +304,9 @@ class HeatedChamberPlugin(
         self._logger.debug("Looping...")
 
         try:
+            if self._purging:
+                return
+
             target_temperature = self._target_temperature
 
             if (
@@ -322,6 +345,17 @@ class HeatedChamberPlugin(
                 ):
                     self._heater.turn_off()
 
+                # Resume print if M191 was waiting for this temperature
+                if self._waiting_for_temperature and current_temperature >= (
+                    target_temperature - self._temperature_threshold
+                ):
+                    self._waiting_for_temperature = False
+                    self._logger.info(
+                        f"Chamber reached target temperature ({current_temperature}°C), resuming print"
+                    )
+                    if self._printer is not None:
+                        self._printer.resume_print()
+
             elif self._heater is not None and self._fan is not None:
                 self._heater.turn_off()
                 self._fan.idle()
@@ -349,6 +383,39 @@ class HeatedChamberPlugin(
         elif self._pid is not None:
             self._pid.reset()
             self._pid.set_auto_mode(False)
+
+    ##~~ EventHandlerPlugin mixin
+
+    def on_event(self, event, payload):
+        if event in ("PrintDone", "PrintFailed", "PrintCancelled"):
+            self._logger.info(f"Print ended ({event}), turning off heater and starting purge")
+            self._waiting_for_temperature = False
+            self.set_target_temperature(None)
+            if self._heater is not None:
+                self._heater.turn_off()
+            self._start_purge()
+
+    def _start_purge(self):
+        if self._purge_timer is not None:
+            self._purge_timer.cancel()
+            self._purge_timer = None
+
+        purge_duration = self._settings.get_int(["purge_duration"], merged=True)
+        self._logger.info(f"Starting purge: fan at 100% for {purge_duration}s")
+        self._purging = True
+        if self._fan is not None:
+            self._fan.set_power(self._fan.get_max_power())
+
+        self._purge_timer = threading.Timer(purge_duration, self._end_purge)
+        self._purge_timer.daemon = True
+        self._purge_timer.start()
+
+    def _end_purge(self):
+        self._logger.info("Purge complete, returning fan to idle")
+        self._purging = False
+        self._purge_timer = None
+        if self._fan is not None:
+            self._fan.idle()
 
 
 # If you want your plugin to be registered within OctoPrint under a different name than what you defined in setup.py

@@ -10,6 +10,18 @@
 		<br>
 	</div>
 
+	<div class="control-group">
+    <label class="control-label">Post-print purge duration</label>
+		<div class="controls">
+      <span class="input-append">
+			  <input type="number" step="1" min="0" class="input-mini text-right" data-bind="value: settings.purge_duration">
+        <span class="add-on">s</span>
+      </span>
+      <span class="help-inline">Fan runs at 100% after print ends to clear fumes</span>
+    </div>
+		<br>
+	</div>
+
   <div class="control-group">
     <legend>PID algorithm</legend>
 

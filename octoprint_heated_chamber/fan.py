@@ -40,7 +40,9 @@ class PwmFan(Fan):
         self._connected = self._pi.connected
 
         if not self._connected:
-            self._logger.error("Error connecting to pigpio daemon. Fan control disabled.")
+            self._logger.error(
+                "Error connecting to pigpio daemon. Fan control disabled."
+            )
             return
 
         self.set_power(self._idle_power)
