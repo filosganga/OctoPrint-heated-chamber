@@ -304,10 +304,10 @@ class HeatedChamberPlugin(
             if gcode == "M191" and target_temperature is not None:
                 self._waiting_for_temperature = True
                 self._logger.info(
-                    f"M191: pausing print until chamber reaches {target_temperature}°C"
+                    f"M191: holding print until chamber reaches {target_temperature}°C"
                 )
                 if self._printer is not None:
-                    self._printer.pause_print()
+                    self._printer.set_job_on_hold(True)
 
             return None
 
@@ -358,16 +358,16 @@ class HeatedChamberPlugin(
                 ):
                     self._heater.turn_off()
 
-                # Resume print if M191 was waiting for this temperature
+                # Release hold if M191 was waiting for this temperature
                 if self._waiting_for_temperature and current_temperature >= (
                     target_temperature - self._temperature_threshold
                 ):
                     self._waiting_for_temperature = False
                     self._logger.info(
-                        f"Chamber reached target temperature ({current_temperature}°C), resuming print"
+                        f"Chamber reached target temperature ({current_temperature}°C), releasing hold"
                     )
                     if self._printer is not None:
-                        self._printer.resume_print()
+                        self._printer.set_job_on_hold(False)
 
             elif self._heater is not None and self._fan is not None:
                 self._heater.turn_off()
