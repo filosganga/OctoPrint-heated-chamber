@@ -6,7 +6,7 @@ from simple_pid import PID
 
 import threading
 import flask
-from flask_login import current_user
+
 
 from octoprint_heated_chamber.fan import PwmFan
 from octoprint_heated_chamber.temperature import Ds18b20, list_ds18b20_devices
@@ -67,13 +67,18 @@ class HeatedChamberPlugin(
         temperature_sensor_ds18b20_max_retries = self._settings.get_int(
             ["temperature_sensor", "ds18b20", "max_retries"], merged=True
         )
-        self._temperature_sensor = Ds18b20(
-            self._logger,
-            temperature_sensor_ds18b20_frequency,
-            temperature_sensor_ds18b20_device_id,
-            temperature_sensor_ds18b20_max_retries,
-        )
-        self._temperature_sensor.start()
+
+        if temperature_sensor_ds18b20_device_id:
+            self._temperature_sensor = Ds18b20(
+                self._logger,
+                temperature_sensor_ds18b20_frequency,
+                temperature_sensor_ds18b20_device_id,
+                temperature_sensor_ds18b20_max_retries,
+            )
+            self._temperature_sensor.start()
+        else:
+            self._logger.warning("No DS18B20 device configured, temperature sensor disabled")
+            self._temperature_sensor = None
 
         # Heater
 
@@ -207,10 +212,10 @@ class HeatedChamberPlugin(
 
     ##~~ SimpleApiPlugin mixin
 
-    def on_api_get(self, request):
-        if current_user.is_anonymous():
-            return "Insufficient rights", 403
+    def is_api_protected(self):
+        return True
 
+    def on_api_get(self, request):
         if len(request.values) != 0:
             action = request.values["action"]
 
