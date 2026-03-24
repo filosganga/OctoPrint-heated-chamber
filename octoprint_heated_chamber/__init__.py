@@ -215,28 +215,26 @@ class HeatedChamberPlugin(
     def is_api_protected(self):
         return True
 
-    def on_api_get(self, request):
-        self._logger.debug(f"API GET request: args={request.args}, values={request.values}")
-        if len(request.values) != 0:
-            action = request.values["action"]
+    def get_api_commands(self):
+        return {"listDs18b20Devices": []}
 
-            # deceide if you want the reset function in you settings dialog
-            if "listDs18b20Devices" == action:
-                try:
-                    devices = list_ds18b20_devices()
-                except Exception as e:
-                    self._logger.error(f"Failed to list DS18B20 devices: {e}")
-                    devices = []
-                if not devices:
-                    self._logger.warning("No DS18B20 devices found. Check 1-wire setup.")
-                else:
-                    self._logger.debug(f"Found DS18B20 devices: {devices}")
-                return flask.jsonify({"devices": devices})
+    def on_api_command(self, command, data):
+        if command == "listDs18b20Devices":
+            try:
+                devices = list_ds18b20_devices()
+            except Exception as e:
+                self._logger.error(f"Failed to list DS18B20 devices: {e}")
+                devices = []
+            if not devices:
+                self._logger.warning("No DS18B20 devices found. Check 1-wire setup.")
+            else:
+                self._logger.debug(f"Found DS18B20 devices: {devices}")
+            return flask.jsonify({"devices": devices})
 
     ##~~ TemplatePlugin mixin
 
     def get_template_configs(self):
-        return [dict(type="settings", custom_bindings=True)]
+        return [dict(type="settings", custom_bindings=True, autoescape=True)]
 
     ##~~ softwareupdate.check_config hook
 

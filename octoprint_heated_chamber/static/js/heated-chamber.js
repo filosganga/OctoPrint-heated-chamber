@@ -23,7 +23,7 @@ $(function() {
 
         self.refreshDs18b20Devices = function() {
             self.isLoadingDevices(true);
-            OctoPrint.simpleApiGet("heated_chamber", { action: "listDs18b20Devices" })
+            OctoPrint.simpleApiCommand("heated_chamber", "listDs18b20Devices")
                 .done(function(response) {
                     var devices = response && response.devices ? response.devices : [];
                     self.ds18b20Devices(devices);
