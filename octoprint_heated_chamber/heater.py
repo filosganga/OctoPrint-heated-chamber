@@ -22,13 +22,30 @@ class Heater:
         pass
 
     def state(self) -> bool:
-        pass
+        return False
 
     def toggle(self) -> None:
         if self.state():
             self.turn_off()
         else:
             self.turn_on()
+
+
+class DummyHeater(Heater):
+    def __init__(self, logger) -> None:
+        super().__init__(logger)
+        self._on = False
+
+    def turn_on(self) -> None:
+        self._on = True
+        self._logger.debug("Heater turned on")
+
+    def turn_off(self) -> None:
+        self._on = False
+        self._logger.debug("Heater turned off")
+
+    def state(self) -> bool:
+        return self._on
 
 
 class RelayHeater(Heater):

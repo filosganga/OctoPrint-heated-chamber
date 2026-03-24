@@ -1,12 +1,13 @@
 import random
 import glob
 import time
+from typing import Optional
 from os.path import basename
 from octoprint.util import RepeatedTimer
 
 
 class TemperatureSensor:
-    def get_temperature(self) -> float:
+    def get_temperature(self) -> Optional[float]:
         pass
 
 
@@ -36,7 +37,7 @@ class Ds18b20(TemperatureSensor):
     def is_running(self) -> bool:
         return self._running
 
-    def get_temperature(self) -> float:
+    def get_temperature(self) -> Optional[float]:
         return self._temperature
 
     def start(self) -> None:

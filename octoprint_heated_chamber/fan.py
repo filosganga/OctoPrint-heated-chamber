@@ -6,7 +6,7 @@ class Fan:
         pass
 
     def get_power(self) -> float:
-        pass
+        return 0
 
     def destroy(self) -> None:
         pass
