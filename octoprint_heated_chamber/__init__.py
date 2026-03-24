@@ -77,7 +77,9 @@ class HeatedChamberPlugin(
             )
             self._temperature_sensor.start()
         else:
-            self._logger.warning("No DS18B20 device configured, temperature sensor disabled")
+            self._logger.warning(
+                "No DS18B20 device configured, temperature sensor disabled"
+            )
             self._temperature_sensor = None
 
         # Heater
