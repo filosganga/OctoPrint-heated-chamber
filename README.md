@@ -57,7 +57,7 @@ Install via the bundled [Plugin Manager](https://docs.octoprint.org/en/master/bu
 or manually using this URL:
 
 ```text
-https://github.com/filosganga/OctoPrint-heated-chamber/archive/master.zip
+https://github.com/filosganga/OctoPrint-heated-chamber/archive/main.zip
 ```
 
 ## Configuration

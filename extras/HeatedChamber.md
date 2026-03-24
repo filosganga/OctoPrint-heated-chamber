@@ -12,7 +12,7 @@ date: 2026-01-03
 
 homepage: https://github.com/filosganga/OctoPrint-heated-chamber
 source: https://github.com/filosganga/OctoPrint-heated-chamber
-archive: https://github.com/filosganga/OctoPrint-heated-chamber/archive/master.zip
+archive: https://github.com/filosganga/OctoPrint-heated-chamber/archive/main.zip
 
 tags:
 - heated chamber
