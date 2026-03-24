@@ -216,6 +216,7 @@ class HeatedChamberPlugin(
         return True
 
     def on_api_get(self, request):
+        self._logger.debug(f"API GET request: args={request.args}, values={request.values}")
         if len(request.values) != 0:
             action = request.values["action"]
 
