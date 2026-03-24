@@ -191,8 +191,12 @@ class HeatedChamberPlugin(
         return 1
 
     def on_settings_save(self, data):
+        old_settings = self._settings.get_all_data()
         octoprint.plugin.SettingsPlugin.on_settings_save(self, data)
-        self.initialize()
+        new_settings = self._settings.get_all_data()
+        if old_settings != new_settings:
+            self._logger.info("Settings changed, reinitializing plugin")
+            self.initialize()
 
     def on_settings_load(self):
         data = octoprint.plugin.SettingsPlugin.on_settings_load(self)
@@ -376,7 +380,9 @@ class HeatedChamberPlugin(
                 self._fan.idle()
 
                 self._logger.debug(
-                    f"No new PID value calculated target_temperature={target_temperature}"
+                    f"No new PID value calculated target_temperature={target_temperature}, "
+                    f"temperature_sensor={self._temperature_sensor is not None}, "
+                    f"pid={self._pid is not None}"
                 )
             else:
                 self._logger.debug(
@@ -387,12 +393,15 @@ class HeatedChamberPlugin(
             self._logger.error(f"Error while looping: {e}")
 
     def set_target_temperature(self, target_temperature):
+        old_target = self._target_temperature
         self._target_temperature = target_temperature
         self._logger.debug(
             f"Set target chamber temperature to: {self._target_temperature}"
         )
 
         if self._target_temperature is not None and self._pid is not None:
+            if old_target != self._target_temperature:
+                self._pid.reset()
             self._pid.setpoint = self._target_temperature
             self._pid.set_auto_mode(True)
         elif self._pid is not None:
