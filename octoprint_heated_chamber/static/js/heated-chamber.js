@@ -21,6 +21,13 @@ $(function() {
             self.refreshDs18b20Devices();
         };
 
+        self.onSettingsBeforeSave = function() {
+            var rate = Number(self.settings.refresh_rate());
+            if (isNaN(rate) || rate < 5) rate = 5;
+            if (rate > 60) rate = 60;
+            self.settings.refresh_rate(rate);
+        };
+
         self.refreshDs18b20Devices = function() {
             self.isLoadingDevices(true);
             OctoPrint.simpleApiCommand("heated_chamber", "listDs18b20Devices")

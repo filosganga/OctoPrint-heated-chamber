@@ -55,12 +55,6 @@ class HeatedChamberPlugin(
         self._fan.idle()
 
         # Temperature sensor
-        if self._temperature_sensor is not None:
-            self._temperature_sensor.stop()
-
-        temperature_sensor_ds18b20_frequency = self._settings.get_int(
-            ["temperature_sensor", "ds18b20", "frequency"], merged=True
-        )
         temperature_sensor_ds18b20_device_id = self._settings.get(
             ["temperature_sensor", "ds18b20", "device_id"], merged=True
         )
@@ -71,11 +65,9 @@ class HeatedChamberPlugin(
         if temperature_sensor_ds18b20_device_id:
             self._temperature_sensor = Ds18b20(
                 self._logger,
-                temperature_sensor_ds18b20_frequency,
                 temperature_sensor_ds18b20_device_id,
                 temperature_sensor_ds18b20_max_retries,
             )
-            self._temperature_sensor.start()
         else:
             self._logger.warning(
                 "No DS18B20 device configured, temperature sensor disabled"
@@ -95,12 +87,14 @@ class HeatedChamberPlugin(
         self._heater = RelayHeater(self._logger, heater_pin, heater_relay_mode)
         self._heater.turn_off()
 
-        # PID
+        # Refresh rate
+        refresh_rate = min(60, max(5, self._settings.get_float(["refresh_rate"], merged=True)))
 
+        # PID
         pid_kp = self._settings.get_float(["pid", "kp"], merged=True)
         pid_kd = self._settings.get_float(["pid", "kd"], merged=True)
         pid_ki = self._settings.get_float(["pid", "ki"], merged=True)
-        pid_sample_time = self._settings.get_float(["pid", "sample_time"], merged=True)
+        pid_sample_time = refresh_rate - 1
 
         if self._pid is not None:
             self._pid.Kp = pid_kp
@@ -141,7 +135,7 @@ class HeatedChamberPlugin(
             self._timer.cancel()
             self._timer = None
 
-        self._timer = RepeatedTimer(1, self._loop, daemon=True)
+        self._timer = RepeatedTimer(refresh_rate, self._loop, daemon=True)
         self._timer.start()
 
     ##~~ ShutdownPlugin mixin
@@ -157,9 +151,7 @@ class HeatedChamberPlugin(
             self._purge_timer.cancel()
             self._purge_timer = None
 
-        if self._temperature_sensor is not None:
-            self._temperature_sensor.stop()
-            self._temperature_sensor = None
+        self._temperature_sensor = None
 
         if self._fan is not None:
             self._fan.destroy()
@@ -176,13 +168,13 @@ class HeatedChamberPlugin(
 
     def get_settings_defaults(self):
         return dict(
-            frequency=1.0,
+            refresh_rate=15,
             temperature_threshold=2.5,
             purge_duration=300,
-            pid=dict(kp=-5, kd=-0.05, ki=-0.02, sample_time=5),
+            pid=dict(kp=-5, kd=-0.05, ki=-0.02),
             fan=dict(pwm=dict(pin=18, frequency=25000, idle_power=15)),
             temperature_sensor=dict(
-                ds18b20=dict(frequency=1.0, device_id=None, max_retries=10)
+                ds18b20=dict(device_id=None, max_retries=10)
             ),
             heater=dict(relay=dict(pin=23, relay_mode=0)),
         )
