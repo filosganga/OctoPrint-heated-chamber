@@ -88,7 +88,9 @@ class HeatedChamberPlugin(
         self._heater.turn_off()
 
         # Refresh rate
-        refresh_rate = min(60, max(5, self._settings.get_float(["refresh_rate"], merged=True)))
+        refresh_rate = min(
+            60, max(5, self._settings.get_float(["refresh_rate"], merged=True))
+        )
 
         # PID
         pid_kp = self._settings.get_float(["pid", "kp"], merged=True)
@@ -174,9 +176,7 @@ class HeatedChamberPlugin(
             m191_hold_gcode="",
             pid=dict(kp=-5, kd=-0.05, ki=-0.02),
             fan=dict(pwm=dict(pin=18, frequency=25000, idle_power=15)),
-            temperature_sensor=dict(
-                ds18b20=dict(device_id=None, max_retries=10)
-            ),
+            temperature_sensor=dict(ds18b20=dict(device_id=None, max_retries=10)),
             heater=dict(relay=dict(pin=23, relay_mode=0)),
         )
 
@@ -309,12 +309,18 @@ class HeatedChamberPlugin(
 
                 # Notify on LCD
                 if self._printer is not None:
-                    self._printer.commands([f"M117 Chamber heating to {target_temperature}C"])
+                    self._printer.commands(
+                        [f"M117 Chamber heating to {target_temperature}C"]
+                    )
 
                 # Send hold gcode before pausing (e.g. lift nozzle, park head)
                 hold_gcode = self._settings.get(["m191_hold_gcode"], merged=True)
                 if hold_gcode and self._printer is not None:
-                    commands = [line.strip() for line in hold_gcode.split("\n") if line.strip() and not line.strip().startswith(";")]
+                    commands = [
+                        line.strip()
+                        for line in hold_gcode.split("\n")
+                        if line.strip() and not line.strip().startswith(";")
+                    ]
                     self._logger.debug(f"Sending M191 hold gcode: {commands}")
                     self._printer.commands(commands)
 
