@@ -135,7 +135,7 @@ class HeatedChamberPlugin(
             self._timer.cancel()
             self._timer = None
 
-        self._timer = RepeatedTimer(refresh_rate, self._loop, daemon=True)
+        self._timer = RepeatedTimer(refresh_rate, self._regulate_chamber, daemon=True)
         self._timer.start()
 
     ##~~ ShutdownPlugin mixin
@@ -256,6 +256,7 @@ class HeatedChamberPlugin(
 
     ##~~ temperatures.received hook
 
+    # OctoPrint's temperatures_received hook expects the dict to be mutated in place and returned
     def enrich_temperatures(self, comm_instance, parsed_temperatures, *args, **kwargs):
         self._logger.debug(f"Original parsed_temperatures={parsed_temperatures}")
 
@@ -311,8 +312,7 @@ class HeatedChamberPlugin(
 
     ##~~ Plugin logic
 
-    def _loop(self) -> None:
-        self._logger.debug("Looping...")
+    def _regulate_chamber(self) -> None:
 
         try:
             if self._purging:
@@ -399,6 +399,9 @@ class HeatedChamberPlugin(
         elif self._pid is not None:
             self._pid.reset()
             self._pid.set_auto_mode(False)
+
+        # React immediately instead of waiting for the next scheduled loop
+        self._regulate_chamber()
 
     ##~~ EventHandlerPlugin mixin
 
