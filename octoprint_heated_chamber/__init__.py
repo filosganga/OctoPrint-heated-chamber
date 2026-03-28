@@ -171,6 +171,7 @@ class HeatedChamberPlugin(
             refresh_rate=15,
             temperature_threshold=2.5,
             purge_duration=300,
+            m191_hold_gcode="",
             pid=dict(kp=-5, kd=-0.05, ki=-0.02),
             fan=dict(pwm=dict(pin=18, frequency=25000, idle_power=15)),
             temperature_sensor=dict(
@@ -305,6 +306,18 @@ class HeatedChamberPlugin(
                 self._logger.info(
                     f"M191: holding print until chamber reaches {target_temperature}°C"
                 )
+
+                # Notify on LCD
+                if self._printer is not None:
+                    self._printer.commands([f"M117 Chamber heating to {target_temperature}C"])
+
+                # Send hold gcode before pausing (e.g. lift nozzle, park head)
+                hold_gcode = self._settings.get(["m191_hold_gcode"], merged=True)
+                if hold_gcode and self._printer is not None:
+                    commands = [line.strip() for line in hold_gcode.split("\n") if line.strip() and not line.strip().startswith(";")]
+                    self._logger.debug(f"Sending M191 hold gcode: {commands}")
+                    self._printer.commands(commands)
+
                 if self._printer is not None:
                     self._printer.set_job_on_hold(True)
 
@@ -365,6 +378,7 @@ class HeatedChamberPlugin(
                         f"Chamber reached target temperature ({current_temperature}°C), releasing hold"
                     )
                     if self._printer is not None:
+                        self._printer.commands(["M117 Chamber ready"])
                         self._printer.set_job_on_hold(False)
 
             elif self._heater is not None and self._fan is not None:
@@ -410,7 +424,10 @@ class HeatedChamberPlugin(
             self._logger.info(
                 f"Print ended ({event}), turning off heater and starting purge"
             )
-            self._waiting_for_temperature = False
+            if self._waiting_for_temperature:
+                self._waiting_for_temperature = False
+                if self._printer is not None:
+                    self._printer.set_job_on_hold(False)
             self.set_target_temperature(None)
             if self._heater is not None:
                 self._heater.turn_off()
@@ -423,6 +440,8 @@ class HeatedChamberPlugin(
 
         purge_duration = self._settings.get_int(["purge_duration"], merged=True)
         self._logger.info(f"Starting purge: fan at 100% for {purge_duration}s")
+        if self._printer is not None:
+            self._printer.commands([f"M117 Purging chamber {purge_duration}s"])
         self._purging = True
         if self._fan is not None:
             self._fan.set_power(self._fan.get_max_power())
@@ -433,6 +452,8 @@ class HeatedChamberPlugin(
 
     def _end_purge(self):
         self._logger.info("Purge complete, returning fan to idle")
+        if self._printer is not None:
+            self._printer.commands(["M117"])
         self._purging = False
         self._purge_timer = None
         if self._fan is not None:

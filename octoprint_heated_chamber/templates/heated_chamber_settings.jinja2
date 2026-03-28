@@ -31,6 +31,15 @@
 		<br>
 	</div>
 
+	<div class="control-group">
+    <label class="control-label">M191 hold gcode</label>
+		<div class="controls">
+			<textarea rows="4" class="input-xxlarge" data-bind="value: settings.m191_hold_gcode" placeholder="G91&#10;G1 Z10 F300&#10;G90&#10;G28 X Y"></textarea>
+      <span class="help-inline">Gcode to send before holding the print when M191 is received (e.g. lift nozzle, park head). Note: this affects printer state (position, mode) for subsequent gcode.</span>
+    </div>
+		<br>
+	</div>
+
   <div class="control-group">
     <legend>PID algorithm</legend>
 
