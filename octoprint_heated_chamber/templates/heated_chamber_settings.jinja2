@@ -1,5 +1,14 @@
 <form class="form-horizontal">
 	<div class="control-group">
+    <label class="control-label">Refresh rate</label>
+		<div class="controls">
+      <span class="input-append">
+			  <input type="number" step="1" min="5" max="60" class="input-mini text-right" data-bind="value: settings.refresh_rate">
+        <span class="add-on">s</span>
+      </span>
+      <span class="help-inline">How often to read the sensor and adjust heater/fan</span>
+    </div>
+		<br>
     <label class="control-label">Temperature threshold (0 - 10)</label>
 		<div class="controls">
       <span class="input-append">
@@ -41,25 +50,10 @@
       </span>
     </div>
 		<br>
-    <label class="control-label">Sample time</label>
-		<div class="controls">
-      <span class="input-append">
-			  <input type="number" step="0.1" max="0" class="input-mini text-right" data-bind="value: settings.pid.sample_time">
-				<span class="add-on">s</span>
-			</span>
-    </div>
   </div>
 
   <div class="control-group">
     <legend>DS18B20 temperature sensor</legend>
-		<label class="control-label">Frequency (0.5 - 5)s</label>
-		<div class="controls">
-      <span class="input-append">
-			  <input type="number" step="0.1" min="0.5" max="5" class="input-mini text-right" data-bind="value: settings.temperature_sensor.ds18b20.frequency">
-				<span class="add-on">s</span>
-			</span>
-    </div>
-		<br>
     <label class="control-label">Device ID</label>
     <div class="controls">
       <select class="input-xlarge" data-bind="value: settings.temperature_sensor.ds18b20.device_id, options: ds18b20Devices, optionsCaption: '-- Select a device --'"></select>

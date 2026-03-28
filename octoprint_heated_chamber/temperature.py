@@ -3,7 +3,6 @@ import glob
 import time
 from typing import Optional
 from os.path import basename
-from octoprint.util import RepeatedTimer
 
 
 class TemperatureSensor:
@@ -17,45 +16,18 @@ class DummyTemperatureSensor(TemperatureSensor):
 
 
 class Ds18b20(TemperatureSensor):
-    def __init__(self, logger, update_frequency, device_id, max_retries=10):
+    def __init__(self, logger, device_id, max_retries=10):
         self._logger = logger
-        self._update_frequency = update_frequency
         self._device_id = device_id
         self._max_retries = max_retries
 
-        self._running = False
-        self._temperature = None
         self._device_file = f"/sys/bus/w1/devices/{device_id}/w1_slave"
-        self._timer = RepeatedTimer(
-            self._update_frequency, self._loop, condition=self.is_running, daemon=True
-        )
 
         self._logger.debug(
-            f"Ds18b20 initiated with update_frequency={self._update_frequency}, device_id={self._device_id}, max_retries={self._max_retries}"
+            f"Ds18b20 initiated with device_id={self._device_id}, max_retries={self._max_retries}"
         )
 
-    def is_running(self) -> bool:
-        return self._running
-
     def get_temperature(self) -> Optional[float]:
-        return self._temperature
-
-    def start(self) -> None:
-        self._running = True
-        self._timer.start()
-        self._logger.debug("Ds18b20 sensor started")
-
-    def stop(self) -> None:
-        self._timer.cancel()
-        self._running = False
-        self._logger.debug("Ds18b20 sensor stopped")
-
-    def _read_temp_raw(self):
-        with open(self._device_file, "r") as f:
-            lines = f.readlines()
-        return lines
-
-    def _loop(self):
         retries = 0
         lines = self._read_temp_raw()
         while lines[0].strip()[-3:] != "YES":
@@ -64,7 +36,7 @@ class Ds18b20(TemperatureSensor):
                 self._logger.warning(
                     f"DS18B20 sensor read timed out after {self._max_retries} retries"
                 )
-                return
+                return None
             time.sleep(0.2)
             lines = self._read_temp_raw()
 
@@ -76,8 +48,15 @@ class Ds18b20(TemperatureSensor):
                 self._logger.warning(
                     "DS18B20 returned 85.0°C (power-on reset value), ignoring reading"
                 )
-                return
-            self._temperature = temp_value
+                return None
+            return temp_value
+
+        return None
+
+    def _read_temp_raw(self):
+        with open(self._device_file, "r") as f:
+            lines = f.readlines()
+        return lines
 
 
 def list_ds18b20_devices():
